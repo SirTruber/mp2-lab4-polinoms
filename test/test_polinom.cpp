@@ -1,5 +1,5 @@
-#include "../gtest/gtest.h"
-#include "../include/M_List.h"
+#include <gtest.h>
+#include "M_List.h"
 
 TEST(polinomials, can_create_polinom)
 {

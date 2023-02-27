@@ -1,4 +1,4 @@
-#include "../src/M_List.cpp"
+#include "../include/M_List.h"
 
 enum CHOISE { add, sub, mult, ex };
 

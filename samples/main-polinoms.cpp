@@ -1,6 +1,13 @@
 #include "../include/M_List.h"
 
-enum CHOISE { add, sub, mult, ex };
+enum CHOISE { ex,add, sub, mult };
+
+void ignoreLine()
+{
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    std::cout << "Enter is over." << std::endl;
+}
 
 void set(polinom& p)
 {
@@ -11,56 +18,50 @@ void set(polinom& p)
         std::cout << "Enter the polinomial degree. To complete the input enter a degree greater than 9 or not a number."
             << std::endl << "x: ";
         std::cin >> tmp;
-        std::cout << std::endl;
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            std::cin.clear();
-            std::cout << "Enter is over." << std::endl;
-            return;
+            ignoreLine();
+            break;
         }
         xyz += tmp * 100;
 
         std::cout << "y: ";
         std::cin >> tmp;
-        std::cout << std::endl;
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            std::cin.clear();
-            std::cout << "Enter is over." << std::endl;
-            return;
+            ignoreLine();
+            break;
         }
 
         xyz += tmp * 10;
 
         std::cout << "z: ";
         std::cin >> tmp;
-        std::cout << std::endl;
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            std::cin.clear();
-            std::cout << "Enter is over." << std::endl;
-            return;
+            ignoreLine();
+            break;
         }
 
         xyz += tmp;
 
-        std::cout << std::endl << "Coef: ";
+        std::cout <<"Coef: ";
         std::cin >> a;
-        std::cout << std::endl;
 
         if (std::cin.fail())
         {
-            std::cin.clear();
-            std::cout << "Enter is over." << std::endl;
-            return;
+            ignoreLine();
+            break;
         }
-
 
         p.push(a, xyz);
     }
+    system("CLS");
+    std::cout << p;
+    system("PAUSE");
 }
 
 int main()
@@ -71,7 +72,7 @@ int main()
     for (;;) 
     {
         polinom p2;
-        system("CLS");
+
         CHOISE ch = ex;
         std::cout << "1.add" <<
         std::endl << "2.sub" <<

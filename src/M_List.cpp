@@ -11,13 +11,12 @@ polinom::~polinom()
     nil.next = nullptr;
 }
 
-polinom::polinom(const polinom& right) : nil(1,1000,nullptr)
+polinom::polinom(const polinom& right) : nil(-1, 1000, &nil), head(&nil)
 {
-    this->~polinom();
     monom* tmp = right.head;
     while (tmp != &right.nil)
     {
-        head = new monom(tmp->a, tmp->xyz, head);
+        this->push(tmp->a,tmp->xyz);
         tmp = tmp->next;
     }
     nil.next = head;
@@ -27,10 +26,11 @@ const polinom &polinom::operator=(const polinom& right)
 {
     if (this != &right) {
         this->~polinom();
+        this->nil.next = &this->nil;
         monom* tmp = right.head;
         while (tmp != &right.nil)
         {
-            head = new monom(tmp->a, tmp->xyz, head);
+            this->push(tmp->a, tmp->xyz);
             tmp = tmp->next;
         }
         nil.next = head;
@@ -38,10 +38,21 @@ const polinom &polinom::operator=(const polinom& right)
     return *this;
 };
 
+
+/*Функция упорядоченного добавления мономов в полином. На вход получает значение
+* коэффицента монома и его степень. Не выдает ничего.
+* Сначала создается указатель tmp на head. Список отсортирован по возрастанию
+* степеней, самый большой элемент - nil, степень 1000. 
+* Указатель двигается до тех пор, пока степень следующего элемента не окажется
+* больше его собственной. Так как последовательность ограничена сверху числом
+* 1000, то такой элемент всегда найдется.
+* После того как такой элемент нашёлся у нас есть два варианта. Либо степень
+* монома равна найденной, либо больше. Отдельно проверяется
+*/
 void polinom::push(double a, int xyz) 
 {
-    monom* tmp = head;
-    while (xyz > tmp->next->xyz)
+    monom* tmp = &nil;
+    while (xyz >= tmp->next->xyz)
     {
         tmp = tmp->next;
     }
@@ -60,21 +71,23 @@ void polinom::push(double a, int xyz)
                 mov = mov->next;
             }
             mov->next = tmp->next;
+            if (tmp == head) head = head->next;
             delete tmp;
         }
+
+        return; 
     }
 
-    if (tmp == head && xyz < head->xyz && a!= 0) 
-    {
-        head = new monom(a, xyz, head);
-        nil.next = head;
-        return;
-    }
-
-    if (a != 0 && xyz != tmp->xyz)
+    if (a != 0)
     {
         monom* pad = new monom(a, xyz, tmp->next);
         tmp->next = pad;
+        if (pad == nil.next)
+        {
+            head = pad;
+            nil.next = head;
+        }
+        return;
     }
 };
 
@@ -83,24 +96,27 @@ polinom polinom::operator +(const polinom& right)
     polinom fus;
     monom* first = this->head;
     monom* second = right.head;
-    while (first != &this->nil || second != &right.nil)
+    while (first != &this->nil && second != &right.nil)
     {
         if (first->xyz < second->xyz)
         {
             fus.push(first->a, first->xyz);
             first = first->next;
+            continue;
         }
 
         if (first->xyz > second->xyz)
         {
             fus.push(second->a, second->xyz);
             second = second->next;
+            continue;
         }
         if (first->xyz == second->xyz)
         {
             fus.push(first->a + second->a, first->xyz);
             first = first->next;
             second = second->next;
+            continue;
         }
     }
     while (first != &this->nil)
@@ -140,9 +156,9 @@ polinom polinom::operator *(const polinom& right)
     for(monom* i = this->head;i != &this->nil; i = i->next)
     {
         polinom add;
-        for (monom* j = right.head; i != &right.nil; j = j->next) {
+        for (monom* j = right.head; j != &right.nil; j = j->next) {
             int deg = i->xyz + j->xyz;
-            if (deg / 100 < i->xyz / 100) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow x-degree");
+            if (deg / 100 % 10 < i->xyz / 100) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow x-degree");
             if (deg / 10 % 10 < i->xyz / 10 % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow y-degree");
             if (deg % 10 < i->xyz % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow z-degree");
 

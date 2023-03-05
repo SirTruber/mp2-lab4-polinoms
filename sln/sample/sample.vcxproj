@@ -129,6 +129,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\samples\main-polinoms.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Polinoms\Polinoms.vcxproj">
+      <Project>{b4046d6e-a25e-4031-81aa-6b1f0159023b}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

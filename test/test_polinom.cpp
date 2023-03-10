@@ -255,17 +255,24 @@ TEST(polinomials, mult_to_zero_gives_empty_polinomial)
 {
 	polinom p;
 	int i = 0;
+	int j = 0;
+	int k = 0;
 
 	//p = y^2 + 2xy + x^2
 	p.push(1, 200);
 	p.push(2, 110);
 	p.push(1, 20);
 
-	p = p * 0;
+	polinom empty;
+	polinom p1 = p * 0;
+	polinom p2 = p * empty;
+	polinom p3 = empty * p;
 
-	for (monom* tmp = p.begin(); tmp != p.end(); tmp = tmp->next, i++);
+	for (monom* tmp = p1.begin(); tmp != p1.end(); tmp = tmp->next, i++);
+	for (monom* tmp = p2.begin(); tmp != p2.end(); tmp = tmp->next, j++);
+	for (monom* tmp = p3.begin(); tmp != p3.end(); tmp = tmp->next, k++);
 
-	EXPECT_EQ(0, i);
+	EXPECT_TRUE(i == 0 && j == 0 && k == 0);
 };
 
 TEST(polinomials, can_mult_polinomial_to_polinomial)

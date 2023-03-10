@@ -66,6 +66,7 @@ void set(polinom& p)
 
 int main()
 {
+    system("chcp 1251");
 	polinom p;
     std::cout << "Enter first polinomial"<< std::endl;
     set(p);

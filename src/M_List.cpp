@@ -13,11 +13,13 @@ polinom::~polinom()
 
 polinom::polinom(const polinom& right) : nil(-1, 1000, &nil), head(&nil)
 {
-    monom* tmp = right.head;
-    while (tmp != &right.nil)
+    if (right.head == &right.nil) return;
+    head = new monom(right.head->a, right.head->xyz, &nil);
+    monom* cur = head;
+    for (monom* tmp = right.head->next; tmp != &right.nil; tmp = tmp->next)
     {
-        this->push(tmp->a,tmp->xyz);
-        tmp = tmp->next;
+        cur->next = new monom(tmp->a, tmp->xyz, &nil);
+        cur = cur->next;
     }
     nil.next = head;
 };
@@ -26,12 +28,17 @@ const polinom &polinom::operator=(const polinom& right)
 {
     if (this != &right) {
         this->~polinom();
-        this->nil.next = &this->nil;
-        monom* tmp = right.head;
-        while (tmp != &right.nil)
+        if (right.head == &right.nil)
         {
-            this->push(tmp->a, tmp->xyz);
-            tmp = tmp->next;
+            nil.next = &nil;
+            return *this;
+        }
+        head = new monom(right.head->a, right.head->xyz, &nil);
+        monom* cur = head;
+        for (monom* tmp = right.head->next; tmp != &right.nil; tmp = tmp->next)
+        {
+            cur->next = new monom(tmp->a, tmp->xyz, &nil);
+            cur = cur->next;
         }
         nil.next = head;
     }
@@ -41,13 +48,23 @@ const polinom &polinom::operator=(const polinom& right)
 
 /*Функция упорядоченного добавления мономов в полином. На вход получает значение
 * коэффицента монома и его степень. Не выдает ничего.
+* 
 * Сначала создается указатель tmp на head. Список отсортирован по возрастанию
 * степеней, самый большой элемент - nil, степень 1000. 
 * Указатель двигается до тех пор, пока степень следующего элемента не окажется
 * больше его собственной. Так как последовательность ограничена сверху числом
 * 1000, то такой элемент всегда найдется.
 * После того как такой элемент нашёлся у нас есть два варианта. Либо степень
-* монома равна найденной, либо больше. Отдельно проверяется
+* монома равна найденной, либо больше. Отдельно проверяется не равенство коэффицента
+* монома нулю. 
+* При нулевом мономе несуществующей степени, моном просто не добавляется.
+* Для существующей степени придется удалять текущий узел и перепривязывать указатели.
+* Для этого создается указатель mov, который пробегает от tmp->next до элемента, 
+* для которого tmp является следующим, в mov->next присваивается tmp->next, tmp 
+* удаляется.
+* При добавлении ненулевого монома с существующей степенью, в полиноме заменяется 
+* коэффицент соответсвующего монома. При добавлении монома уникальной степени,
+* создается новый.
 */
 void polinom::push(double a, int xyz) 
 {
@@ -155,6 +172,7 @@ polinom polinom::operator *(const polinom& right)
     polinom fus;
     for(monom* i = this->head;i != &this->nil; i = i->next)
     {
+        if (right.head == &right.nil) return fus; // для умножения на ноль справа
         polinom add;
         for (monom* j = right.head; j != &right.nil; j = j->next) {
             int deg = i->xyz + j->xyz;

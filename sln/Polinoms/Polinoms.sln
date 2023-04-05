@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "polinoms", "Polinoms.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sample", "..\sample\sample.vcxproj", "{1801D2D7-A9F2-4FAB-9646-6DA106E73927}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "..\test\test.vcxproj", "{8ECD9F11-CFDF-444D-9E86-DB8986155CD1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "..\Test\test.vcxproj", "{8ECD9F11-CFDF-444D-9E86-DB8986155CD1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{1DC720E9-27B5-4C7C-BA81-65B198339ACC} = {1DC720E9-27B5-4C7C-BA81-65B198339ACC}
 	EndProjectSection

@@ -2,11 +2,15 @@
 
 enum CHOISE { ex,add, sub, mult };
 
-void ignoreLine()
+void ignoreLine(polinom& p)
 {
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    std::cout << "Enter is over." << std::endl;
+    system("CLS");
+    std::cout << "Enter is over. Your polinom:" << std::endl;
+    p.show();
+    std::cout << std::endl;
+    system("PAUSE");
 }
 
 void set(polinom& p)
@@ -21,7 +25,7 @@ void set(polinom& p)
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            ignoreLine();
+            ignoreLine(p);
             break;
         }
         xyz += tmp * 100;
@@ -31,7 +35,7 @@ void set(polinom& p)
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            ignoreLine();
+            ignoreLine(p);
             break;
         }
 
@@ -42,7 +46,7 @@ void set(polinom& p)
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            ignoreLine();
+            ignoreLine(p);
             break;
         }
 
@@ -53,22 +57,18 @@ void set(polinom& p)
 
         if (std::cin.fail())
         {
-            ignoreLine();
+            ignoreLine(p);
             break;
         }
 
-        p.push(a, xyz);
+        p.push(monom{a,xyz});
     }
-    system("CLS");
-    std::cout << p;
-    system("PAUSE");
 }
 
 int main()
 {
     system("chcp 1251");
 	polinom p;
-    std::cout << "Enter first polinomial"<< std::endl;
     set(p);
     for (;;) 
     {
@@ -95,16 +95,14 @@ int main()
             p = p * p2;
             break;
         case ex:
-            system("CLS");
-            std::cout << p;
             exit(0);
             break;
         default:
             std::cout << "Incorrect input" << std::endl;
             break;
         }
-
-	std::cout << p;
+        std::cout << "Result" << std::endl;
+        p.show();
     system("PAUSE");
     }
 }

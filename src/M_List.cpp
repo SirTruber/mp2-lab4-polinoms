@@ -1,151 +1,59 @@
 #include "../include/M_List.h"
 
-polinom::~polinom() 
-{
-    while (head != &nil)
-    {
-        monom * temp = head->next;
-        delete head;
-        head = temp;
-    }
-    nil.next = nullptr;
-}
-
-polinom::polinom(const polinom& right) : nil(-1, 1000, &nil), head(&nil)
-{
-    if (right.head == &right.nil) return;
-    head = new monom(right.head->a, right.head->xyz, &nil);
-    monom* cur = head;
-    for (monom* tmp = right.head->next; tmp != &right.nil; tmp = tmp->next)
-    {
-        cur->next = new monom(tmp->a, tmp->xyz, &nil);
-        cur = cur->next;
-    }
-    nil.next = head;
-};
+polinom::polinom(const polinom& right) : 
+    _list(right._list)
+{};
 
 const polinom &polinom::operator=(const polinom& right)
 {
     if (this != &right) {
-        this->~polinom();
-        if (right.head == &right.nil)
-        {
-            nil.next = &nil;
-            return *this;
-        }
-        head = new monom(right.head->a, right.head->xyz, &nil);
-        monom* cur = head;
-        for (monom* tmp = right.head->next; tmp != &right.nil; tmp = tmp->next)
-        {
-            cur->next = new monom(tmp->a, tmp->xyz, &nil);
-            cur = cur->next;
-        }
-        nil.next = head;
+        _list = right._list;
     }
     return *this;
 };
 
-
-/*Функция упорядоченного добавления мономов в полином. На вход получает значение
-* коэффицента монома и его степень. Не выдает ничего.
-* 
-* Сначала создается указатель tmp на head. Список отсортирован по возрастанию
-* степеней, самый большой элемент - nil, степень 1000. 
-* Указатель двигается до тех пор, пока степень следующего элемента не окажется
-* больше его собственной. Так как последовательность ограничена сверху числом
-* 1000, то такой элемент всегда найдется.
-* После того как такой элемент нашёлся у нас есть два варианта. Либо степень
-* монома равна найденной, либо больше. Отдельно проверяется не равенство коэффицента
-* монома нулю. 
-* При нулевом мономе несуществующей степени, моном просто не добавляется.
-* Для существующей степени придется удалять текущий узел и перепривязывать указатели.
-* Для этого создается указатель mov, который пробегает от tmp->next до элемента, 
-* для которого tmp является следующим, в mov->next присваивается tmp->next, tmp 
-* удаляется.
-* При добавлении ненулевого монома с существующей степенью, в полиноме заменяется 
-* коэффицент соответсвующего монома. При добавлении монома уникальной степени,
-* создается новый.
-*/
-void polinom::push(double a, int xyz) 
+void polinom::push(monom data) 
 {
-    monom* tmp = &nil;
-    while (xyz >= tmp->next->xyz)
-    {
-        tmp = tmp->next;
-    }
-
-    if (xyz == tmp->xyz)
-    {
-        if (a != 0)
-        {
-            tmp->a = a;
-        }
-        else
-        {
-            monom* mov = tmp->next;
-            while (mov->next != tmp)
-            {
-                mov = mov->next;
-            }
-            mov->next = tmp->next;
-            if (tmp == head) head = head->next;
-            delete tmp;
-        }
-
-        return; 
-    }
-
-    if (a != 0)
-    {
-        monom* pad = new monom(a, xyz, tmp->next);
-        tmp->next = pad;
-        if (pad == nil.next)
-        {
-            head = pad;
-            nil.next = head;
-        }
-        return;
-    }
+    _list.push(data);
 };
 
 polinom polinom::operator +(const polinom& right)
 {
     polinom fus;
-    monom* first = this->head;
-    monom* second = right.head;
-    while (first != &this->nil && second != &right.nil)
+    auto first = _list.begin();
+    auto second = right._list.begin();
+    while ( first != _list.end() && second != right._list.end())
     {
-        if (first->xyz < second->xyz)
+        if (*first < *second)
         {
-            fus.push(first->a, first->xyz);
-            first = first->next;
+            fus.push(*first);
+            first ++;
             continue;
         }
 
-        if (first->xyz > second->xyz)
+        if (*first > *second)
         {
-            fus.push(second->a, second->xyz);
-            second = second->next;
+            fus.push(*second);
+            second ++;
             continue;
         }
-        if (first->xyz == second->xyz)
-        {
-            fus.push(first->a + second->a, first->xyz);
-            first = first->next;
-            second = second->next;
-            continue;
-        }
+        
+        fus.push(monom{ first->_a + second->_a,first->_xyz });
+        first ++;
+        second ++;
+        continue;
+        
     }
-    while (first != &this->nil)
+    while (first != _list.end())
     {
-        fus.push(first->a, first->xyz);
-        first = first->next;
+        fus.push(*first);
+        first ++;
     }
 
-    while(second != &right.nil)
+    while(second != right._list.end())
     {
-        fus.push(second->a, second->xyz);
-        second = second->next;
+        fus.push(*second);
+        second ++;
     }
 
     return fus;
@@ -154,9 +62,9 @@ polinom polinom::operator +(const polinom& right)
 polinom polinom::operator *(double a)
 {
     polinom fus;
-    for (monom* tmp = head; tmp != &this->nil; tmp = tmp->next)
+    for (auto tmp = _list.begin(); tmp != _list.end(); tmp++)
     {
-        fus.push(tmp->a * a, tmp->xyz);
+        fus.push(monom{ tmp->_a * a,tmp->_xyz });
     }
     return fus;
 };
@@ -170,17 +78,18 @@ polinom polinom::operator -(const polinom& right)
 polinom polinom::operator *(const polinom& right) 
 {
     polinom fus;
-    for(monom* i = this->head;i != &this->nil; i = i->next)
+    for(auto i = _list.begin(); i != _list.end(); i++ )
     {
-        if (right.head == &right.nil) return fus; // для умножения на ноль справа
+        if (right._list.begin() == right._list.end()) return fus; // для умножения на ноль справа
         polinom add;
-        for (monom* j = right.head; j != &right.nil; j = j->next) {
-            int deg = i->xyz + j->xyz;
-            if (deg / 100 % 10 < i->xyz / 100) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow x-degree");
-            if (deg / 10 % 10 < i->xyz / 10 % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow y-degree");
-            if (deg % 10 < i->xyz % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow z-degree");
+        for (auto j = right._list.begin(); j != right._list.end(); j++ ) {
+            int deg = i->_xyz + j->_xyz;
+            if (deg / 100 % 10 < i->_xyz / 100) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow x-degree");
+            if (deg / 10 % 10 < i->_xyz / 10 % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow y-degree");
+            if (deg % 10 < i->_xyz % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow z-degree");
 
-            add.push(i->a * j->a, i->xyz + j->xyz);
+            
+            add.push(monom{ i->_a * j->_a, i->_xyz + j->_xyz });
         }
         fus = fus + add;
     }
@@ -188,15 +97,16 @@ polinom polinom::operator *(const polinom& right)
     return fus;
 };
 
-std::ostream& operator<<(std::ostream& os, const polinom& p) 
+void polinom::show()
 {
-    for (monom* tmp = p.head; tmp != &p.nil; tmp = tmp->next) 
+    for (auto tmp = _list.begin(); tmp != _list.end(); )
     {
-        int x = tmp->xyz / 100;
-        int y = tmp->xyz / 10 % 10;
-        int z = tmp->xyz % 10;
-
-        std::cout << tmp->a;
+        int x = tmp->_xyz / 100;
+        int y = tmp->_xyz / 10 % 10;
+        int z = tmp->_xyz % 10;
+        
+        if(tmp->_a != 1)
+            std::cout << tmp->_a;
         if (x != 0)
         {
             std::cout << "x";
@@ -216,23 +126,27 @@ std::ostream& operator<<(std::ostream& os, const polinom& p)
             std::cout << "z";
             if (z != 1)
             {
-                std::cout << "(" << tmp->xyz % 10 << ")";
+                std::cout << "(" << tmp->_xyz % 10 << ")";
             }
         }
-        if (tmp->next->a > 0)
+
+        tmp++;
+
+        if (tmp->_a > 0)
         {
             std::cout << " + ";
         }
     }
-    return os;
-};
-
-monom* polinom::begin()
-{
-    return head;
-};
-
-monom* polinom::end()
-{
-    return &nil;
 }
+ItemIterator polinom::begin() const
+{
+    return _list.begin();
+}
+ItemIterator polinom::end() const
+{
+    return _list.end();
+}
+ItemIterator& polinom::next(ItemIterator &it)
+{
+    return it.operator++();
+};

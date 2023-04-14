@@ -1,28 +1,11 @@
 #include "../include/M_List.h"
 
-polinom::polinom(const polinom& right) : 
-    _list(right._list)
-{};
-
-const polinom &polinom::operator=(const polinom& right)
-{
-    if (this != &right) {
-        _list = right._list;
-    }
-    return *this;
-};
-
-void polinom::push(monom data) 
-{
-    _list.push(data);
-};
-
 polinom polinom::operator +(const polinom& right)
 {
     polinom fus;
-    auto first = _list.begin();
-    auto second = right._list.begin();
-    while ( first != _list.end() && second != right._list.end())
+    auto first = begin();
+    auto second = right.begin();
+    while ( first != end() && second != right.end())
     {
         if (*first < *second)
         {
@@ -44,25 +27,26 @@ polinom polinom::operator +(const polinom& right)
         continue;
         
     }
-    while (first != _list.end())
+    while (first != end())
     {
         fus.push(*first);
         first ++;
     }
 
-    while(second != right._list.end())
+    while(second != right.end())
     {
         fus.push(*second);
         second ++;
     }
 
+    fus.butifie();
     return fus;
 };
 
 polinom polinom::operator *(double a)
 {
     polinom fus;
-    for (auto tmp = _list.begin(); tmp != _list.end(); tmp++)
+    for (auto tmp = begin(); tmp != end(); tmp++)
     {
         fus.push(monom{ tmp->_a * a,tmp->_xyz });
     }
@@ -78,15 +62,15 @@ polinom polinom::operator -(const polinom& right)
 polinom polinom::operator *(const polinom& right) 
 {
     polinom fus;
-    for(auto i = _list.begin(); i != _list.end(); i++ )
+    for(auto i = begin(); i != end(); i++ )
     {
-        if (right._list.begin() == right._list.end()) return fus; // для умножения на ноль справа
+        if (right.begin() == right.end()) return fus; // для умножения на ноль справа
         polinom add;
-        for (auto j = right._list.begin(); j != right._list.end(); j++ ) {
+        for (auto j = right.begin(); j != right.end(); j++ ) {
             int deg = i->_xyz + j->_xyz;
-            if (deg / 100 % 10 < i->_xyz / 100) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow x-degree");
-            if (deg / 10 % 10 < i->_xyz / 10 % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow y-degree");
-            if (deg % 10 < i->_xyz % 10) throw std::out_of_range("polinom polinom::operator *(const polinom& right).Overflow z-degree");
+            if (deg / 100 % 10 < i->_xyz / 100) throw std::domain_error("Overflow x-degree");
+            if (deg / 10 % 10 < i->_xyz / 10 % 10) throw std::domain_error("Overflow y-degree");
+            if (deg % 10 < i->_xyz % 10) throw std::domain_error("Overflow z-degree");
 
             
             add.push(monom{ i->_a * j->_a, i->_xyz + j->_xyz });
@@ -94,18 +78,19 @@ polinom polinom::operator *(const polinom& right)
         fus = fus + add;
     }
     
+    fus.butifie();
     return fus;
 };
 
 void polinom::show()
 {
-    for (auto tmp = _list.begin(); tmp != _list.end(); )
+    for (auto tmp = begin(); tmp != end(); )
     {
         int x = tmp->_xyz / 100;
         int y = tmp->_xyz / 10 % 10;
         int z = tmp->_xyz % 10;
-        
-        if(tmp->_a != 1)
+
+        if (tmp->_a != 1)
             std::cout << tmp->_a;
         if (x != 0)
         {
@@ -137,16 +122,23 @@ void polinom::show()
             std::cout << " + ";
         }
     }
-}
-ItemIterator polinom::begin() const
-{
-    return _list.begin();
-}
-ItemIterator polinom::end() const
-{
-    return _list.end();
-}
-ItemIterator& polinom::next(ItemIterator &it)
-{
-    return it.operator++();
 };
+
+void polinom::butifie()
+{
+    polinom p;
+    for (ItemIterator first = begin(), second = begin(); second != end();first = second )
+    {
+        ++second;
+        double a = first->_a; int xyz = first->_xyz;
+
+        while (first->_xyz == second->_xyz)
+        {
+            a += second->_a;
+            ++second;
+        }
+
+        p.push(monom{a,xyz});
+    }
+    *this = p;
+}

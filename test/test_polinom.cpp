@@ -77,7 +77,7 @@ TEST(polinomials, expect_that_empty_polinom_has_no_monoms)
 {
 	polinom p;
 	int i = 0;
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++);
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++);
 	EXPECT_EQ(i, 0);
 };
 
@@ -94,7 +94,7 @@ TEST(polinomials, can_copy_polinoms)
 	int xyz[3] = {20, 110, 200};
 	polinom p2(p1);
 
-	for (ItemIterator tmp = p2.begin(); tmp != p2.end(); p2.next(tmp), i++)
+	for (ItemIterator tmp = p2.begin(); tmp != p2.end(); ++tmp, i++)
 	{
 		if (tmp->_a != a[i] || tmp->_xyz != xyz[i]) FAIL();
 	}
@@ -129,7 +129,7 @@ TEST(polinomials, assign_can_change_polinoms)
 	p1 = p2;
 
 	int i = 0;
-	for (ItemIterator tmp = p1.begin(); tmp != p1.end(); p1.next(tmp), i++);
+	for (ItemIterator tmp = p1.begin(); tmp != p1.end(); ++tmp, i++);
 	EXPECT_EQ(2,i);
 };
 
@@ -151,7 +151,12 @@ TEST(polinomials, can_insert_monomes)
 
 	ASSERT_NO_THROW(p.push(monom{ 2.1,10 }));
 };
+TEST(polinomials, can_insert_many_monoms)
+{
+	polinom p;
 
+	ASSERT_NO_THROW(for (int i = 0; i < 1000; i++) p.push(monom{pow(i,2),i}););
+}
 TEST(polinomials, zero_monomes_are_not_stored)
 {
 	polinom p;
@@ -161,11 +166,11 @@ TEST(polinomials, zero_monomes_are_not_stored)
 	p.push(monom{ 0, 110 });
 	p.push(monom{ 0, 20 });
 
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++);
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++);
 	EXPECT_EQ(0, i);
 };
 
-TEST(polinomials, simular_monomes_are_replaced_when_entering)
+TEST(polinomials, simular_monomes_are_reduced_when_entering)
 {
 	polinom p;
 	int i = 0;
@@ -175,15 +180,15 @@ TEST(polinomials, simular_monomes_are_replaced_when_entering)
 	
 	//p = 3x^2
 	p.push(monom{ 3, 200 });
-
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++);
+	p.butifie();
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++);
 	
-	EXPECT_TRUE(p.begin()->_a == 3. 
+	EXPECT_TRUE(p.begin()->_a == 4. 
 		     && p.begin()->_xyz == 200
 	         && i == 1);
 };
 
-TEST(polinomials, replace_to_zero_monom_can_delete)
+TEST(polinomials, padding_to_zero_monom_can_delete)
 {
 	polinom p;
 	int i = 0;
@@ -193,12 +198,12 @@ TEST(polinomials, replace_to_zero_monom_can_delete)
 	p.push(monom{ 2, 110 });
 	p.push(monom{ 1, 20 });
 
-	//p = 2xy
-	p.push(monom{ 0, 200 });
-	p.push(monom{ 0, 20 });
-
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++);
-	EXPECT_EQ(1, i);
+	//p = 2y^2 + 2xy
+	p.push(monom{ -1, 200 });
+	p.push(monom{ 1, 20 });
+	p.butifie();
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++);
+	EXPECT_EQ(2, i);
 }; 
 
 TEST(polinomials, can_sum_polinoms)
@@ -222,7 +227,7 @@ TEST(polinomials, can_sum_polinoms)
 	double a[3] = { 1,1,1 };
 	int xyz[3] = { 3, 20, 200 };
 	
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++)
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++)
 	{
 		if (tmp->_a != a[i] || tmp->_xyz != xyz[i]) FAIL();
 	}
@@ -245,7 +250,7 @@ TEST(polinomials, can_add_to_empty_polinom)
 	double a[3] = { 1,2,1 };
 	int xyz[3] = { 20, 110, 200 };
 
-	for (ItemIterator tmp = p2.begin(); tmp != p2.end(); p2.next(tmp), i++)
+	for (ItemIterator tmp = p2.begin(); tmp != p2.end(); ++tmp, i++)
 	{
 		if (tmp->_a != a[i] || tmp->_xyz != xyz[i]) FAIL();
 	}
@@ -273,7 +278,7 @@ TEST(polinomials, can_sub_polinomials)
 	double a[4] = { -1,1,4,1 };
 	int xyz[4] = { 3, 20,110, 200 };
 
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++)
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++)
 	{
 		if (tmp->_a != a[i] || tmp->_xyz != xyz[i]) FAIL();
 	}
@@ -292,7 +297,7 @@ TEST(polinomials, sub_from_itself_gives_zero)
 
 	p = p - p;
 
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++);
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++);
 	
 	EXPECT_EQ(0, i);
 };
@@ -311,7 +316,7 @@ TEST(polinomials, can_mult_polinomials_to_number)
 	double a[3] = { 2,4,2 };
 	int xyz[3] = { 20,110, 200 };
 
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++)
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++)
 	{
 		if (tmp->_a != a[i] || tmp->_xyz != xyz[i]) FAIL();
 	}
@@ -335,9 +340,9 @@ TEST(polinomials, mult_to_zero_gives_empty_polinomial)
 	polinom p2 = p * empty;
 	polinom p3 = empty * p;
 
-	for (ItemIterator tmp = p1.begin(); tmp != p1.end(); p1.next(tmp), i++);
-	for (ItemIterator tmp = p2.begin(); tmp != p2.end(); p2.next(tmp), j++);
-	for (ItemIterator tmp = p3.begin(); tmp != p3.end(); p3.next(tmp), k++);
+	for (ItemIterator tmp = p1.begin(); tmp != p1.end(); ++tmp, i++);
+	for (ItemIterator tmp = p2.begin(); tmp != p2.end(); ++tmp, j++);
+	for (ItemIterator tmp = p3.begin(); tmp != p3.end(); ++tmp, k++);
 
 	EXPECT_TRUE(i == 0 && j == 0 && k == 0);
 };
@@ -362,12 +367,39 @@ TEST(polinomials, can_mult_polinomial_to_polinomial)
 	double a[4] = { 2, 1,-4,-2 };
 	int xyz[4] = { 113, 203,220, 310 };
 
-	for (ItemIterator tmp = p.begin(); tmp != p.end(); p.next(tmp), i++)
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++)
 	{
 		if (tmp->_a != a[i] || tmp->_xyz != xyz[i]) FAIL();
 	}
 	EXPECT_EQ(4, i);
 };
+
+TEST(polinomials, mult_polinomial_to_polinomial_reduced_simular)
+{
+	polinom p1;
+	polinom p2;
+	int i = 0;
+
+	//p1 = 2xy + x^2
+	p1.push(monom{ 1, 200 });
+	p1.push(monom{ 2, 110 });
+
+	//p2 = 2x^2 - 6xy 
+	p2.push(monom{ 2, 200 });
+	p2.push(monom{ -6, 110 });
+
+	//p = -12x^2y^2 - 2x^3y + 2x^4   
+	polinom p = p1 * p2;
+
+	double a[3] = { -12, -2,2};
+	int xyz[3] = { 220, 310, 400 };
+
+	for (ItemIterator tmp = p.begin(); tmp != p.end(); ++tmp, i++)
+	{
+		if (tmp->_a != a[i] || tmp->_xyz != xyz[i]) FAIL();
+	}
+	EXPECT_EQ(3, i);
+}
 
 TEST(polinomials, throw_when_overflow_degree)
 {

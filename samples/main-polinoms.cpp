@@ -2,31 +2,48 @@
 
 enum CHOISE { ex,add, sub, mult };
 
-void ignoreLine(polinom& p)
+void contSwitch(bool& cont)
 {
+    std::string s;
+    for (;;) {
+        std::cout << "Continue input? y/n" << std::endl;
+        std::cin >> s;
+        if (s == "y" || s == "yes")
+        {
+            cont = true;
+            return;
+        }
+        if (s == "n" || s == "no")
+        {
+            cont = false;
+            return;
+        }
+    }
+};
+void ignoreLine()
+{
+    std::string s;
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    system("CLS");
-    std::cout << "Enter is over. Your polinom:" << std::endl;
-    p.show();
-    std::cout << std::endl;
-    system("PAUSE");
-}
+    std::cout << "Input error." << std::endl;;
+};
 
 void set(polinom& p)
 {
     int tmp;
-    for (;;) {
+    bool cont = true;
+    while (cont) {
         double a = 0;
         int xyz = 0;
-        std::cout << "Enter the polinomial degree. To complete the input enter a degree greater than 9 or not a number."
+        std::cout << "Enter the polinomial degree."
             << std::endl << "x: ";
         std::cin >> tmp;
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            ignoreLine(p);
-            break;
+            ignoreLine();
+            contSwitch(cont);
+            continue;
         }
         xyz += tmp * 100;
 
@@ -35,8 +52,9 @@ void set(polinom& p)
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            ignoreLine(p);
-            break;
+            ignoreLine();
+            contSwitch(cont);
+            continue;
         }
 
         xyz += tmp * 10;
@@ -46,8 +64,9 @@ void set(polinom& p)
 
         if (std::cin.fail() || tmp > 9 || tmp < 0)
         {
-            ignoreLine(p);
-            break;
+            ignoreLine();
+            contSwitch(cont);
+            continue;
         }
 
         xyz += tmp;
@@ -57,18 +76,24 @@ void set(polinom& p)
 
         if (std::cin.fail())
         {
-            ignoreLine(p);
-            break;
+            ignoreLine();
+            contSwitch(cont);
+            continue;
         }
 
         p.push(monom{a,xyz});
+        contSwitch(cont);
     }
+    p.butifie();
+    p.show();
+    std::cout << std::endl;
+    system("PAUSE");
 }
 
 int main()
 {
-    system("chcp 1251");
 	polinom p;
+    std::cout << "Use '.' as decimal separator.Simular terms are reduce." << std::endl;
     set(p);
     for (;;) 
     {
@@ -90,9 +115,10 @@ int main()
             set(p2);
             p = p - p2;
             break;
-        case mult:
+        case mult:           
             set(p2);
-            p = p * p2;
+            try { p = p * p2; }
+            catch (const std::domain_error& e) { std::cerr << e.what(); exit(-1); }
             break;
         case ex:
             exit(0);
@@ -101,7 +127,7 @@ int main()
             std::cout << "Incorrect input" << std::endl;
             break;
         }
-        std::cout << "Result" << std::endl;
+        std::cout << "Result:" << std::endl;
         p.show();
     system("PAUSE");
     }

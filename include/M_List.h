@@ -16,18 +16,18 @@ struct monom
         _xyz(xyz)
     {};
 
-    bool operator==(const monom& r) const { return _xyz == r._xyz; };
-    bool operator!=(const monom& r) const { return _xyz != r._xyz; };
-    bool operator<(const monom& r)  const { return _xyz < r._xyz; };
-    bool operator<=(const monom& r) const { return _xyz <= r._xyz; };
-    bool operator>(const monom& r)  const { return _xyz > r._xyz; };
-    bool operator>=(const monom& r) const { return _xyz >= r._xyz; };
+    bool operator==(const monom& r) const { return _xyz == r._xyz ; }; //Рассматриваем эти операторы как проверку на подобие
+    bool operator!=(const monom& r) const { return _xyz != r._xyz ; };
+    bool operator<(const monom& r)  const { return _xyz <  r._xyz ; };
+    bool operator<=(const monom& r) const { return _xyz <= r._xyz ; };
+    bool operator>(const monom& r)  const { return _xyz >  r._xyz ; };
+    bool operator>=(const monom& r) const { return _xyz >= r._xyz ; };
 
-    bool operator==(const double& r)const { return _a == r; };
-    bool operator!=(const double& r)const { return _a != r; };
+    bool operator==(const double& r)const { return std::fabs(_a - r) < std::numeric_limits<double>::epsilon(); };
+    bool operator!=(const double& r)const { return ! (* this == r); };
 };
 
-// Структура хранения отсортированного списка 
+// Структура хранения списка 
 template<typename T>
 class sortedList
 {
@@ -50,9 +50,10 @@ public:
     // Деструктор
     ~sortedList()
     {
-        while (_head != &_nil)
+        for (node* tmp = _head; _head != &_nil;_head = tmp)
         {
-            popMin();
+            tmp = _head->_next;
+            delete _head;
         }
         _nil._next = nullptr;
     };
@@ -100,9 +101,11 @@ public:
     
     //\brief Вставка с упорядочиванием
     //\param data Данные для вставки
-    void push(const T data)
+    virtual void push(const T data)
     {
         node* cur = &_nil;
+
+        if (data == 0) return;
 
         // Сдвигаем указатель, пока не дойдем до края или данные не превысят порог 
         while (cur->_next != &_nil && cur->_next->_data < data)
@@ -110,35 +113,16 @@ public:
             cur = cur->_next;
         }
 
-        // если данные совпадают, нужно либо заместить данные, либо удалить, если они нулевые
-        if (cur->_next->_data == data)
-        {
-            if (data != 0)
-            {
-                cur->_next->_data = data;
-            }
-            else
-            {
-                node* tmp = cur->_next;
-                cur->_next = cur->_next->_next;
-                if (tmp == _head) _head = _head->_next;
-                delete tmp;
-            }
-            return;
-        }
+        // Вставляем данные между отсортированными промежутками и перепривязываем 
+        // указатели
         
-        // Если данные ненулевые, вставляем их между отсортированными промежутками
-        // и перепривязываем указатели
-        if (data != 0) 
-        {
-            node* target = new node{data,cur->_next};
+        node* target = new node{data,cur->_next};
             
-            cur->_next = target;
-            if (target == _nil._next)
-            {
-                _head = target;
-                _nil._next = _head;
-            }
+        cur->_next = target;
+        if (target == _nil._next)
+        {
+            _head = target;
+            _nil._next = _head;
         }
     };
 
@@ -151,6 +135,7 @@ public:
         node* tmp = _head->_next;
         delete _head;
         _head = tmp;
+        _nil._next = _head;
         return target;
     };
     
@@ -167,6 +152,14 @@ public:
 
         iterator& operator++() { _me = _me->_next; return *this; };
         iterator operator++(int) { iterator r(*this); _me = _me->_next; return r; };
+        iterator operator+(int i)
+        {
+            if (i < 0) throw std::logic_error("Unidirectional list");
+
+            iterator r(*this);
+            for (size_t k = 0; k < i; ++k) r++;
+            return r;
+        }
     };
     // \brief Получение первого элемента списка
     // \return Указатель на первый элемент
@@ -178,31 +171,12 @@ public:
 };
 using ItemIterator = typename sortedList<monom>::iterator;
 //Класс polinom обеспечивает хранение и взаимодействие со списком мономов.
-class polinom
+class polinom: public sortedList<monom>
 {
-private:
-    sortedList<monom> _list ;
 public:
-    //Конструктор без параметров.Создает "пустой" список с фиктивным узлом.
-    polinom() = default;
-
-    //Деструктор
-    ~polinom() = default;
-
-    //\brief Конструктор копии 
-    //\param right Копируемый полином
-    polinom(const polinom & right);
-
-    //\brief Конструктор копии 
-    //\param right Копируемый полином
-    const polinom &operator =(const polinom& right);
-
-    //\brief Метод вставки в полином монома
-    //\param data Моном для вставки
-    void push(monom data);
 
     polinom operator +(const polinom& right);
-
+    
     polinom operator *(double a);
 
     polinom operator -(const polinom& right);
@@ -211,8 +185,6 @@ public:
     //\brief Процедура вывода полинома на экран
     void show();
 
-    ItemIterator begin() const;
-    ItemIterator end() const;
-    ItemIterator& next(ItemIterator &it);
-    ItemIterator operator++(int);
-};
+    //\brief Процедура приведения подобных
+    void butifie();
+    };

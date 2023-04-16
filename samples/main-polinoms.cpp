@@ -1,6 +1,6 @@
 #include "../include/M_List.h"
 
-enum CHOISE { ex,add, sub, mult };
+enum CHOISE { ex,add, sub, mult1,mult2, };
 
 void contSwitch(bool& cont)
 {
@@ -22,7 +22,6 @@ void contSwitch(bool& cont)
 };
 void ignoreLine()
 {
-    std::string s;
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cout << "Input error." << std::endl;;
@@ -98,11 +97,13 @@ int main()
     for (;;) 
     {
         polinom p2;
-
+        double m = 1;
+        
         CHOISE ch = ex;
         std::cout << "1.add" <<
         std::endl << "2.sub" <<
-        std::endl << "3.mult" <<
+        std::endl << "3.polinomial mult" <<
+        std::endl << "4.mult by const" <<
         std::endl << "0.exit" << std::endl;
         scanf_s("%d", &ch);
         switch (ch)
@@ -115,10 +116,23 @@ int main()
             set(p2);
             p = p - p2;
             break;
-        case mult:           
+        case mult1:           
             set(p2);
             try { p = p * p2; }
             catch (const std::domain_error& e) { std::cerr << e.what(); exit(-1); }
+            break;
+        case mult2:
+            for (;;) {
+                std::cout << "Enter the constant:";
+                std::cin >> m;
+                if (std::cin.fail())
+                {
+                    ignoreLine();
+                    continue;
+                }
+                break;
+            }
+            p = p * m;
             break;
         case ex:
             exit(0);
